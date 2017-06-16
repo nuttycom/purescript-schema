@@ -1,0 +1,21 @@
+{
+  "name": "purescript-schema",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^3.0.0",
+    "purescript-console": "^3.0.0",
+    "purescript-freeap": "^3.0.1",
+    "purescript-leibniz": "^4.0.0",
+    "purescript-exists": "^3.0.0",
+    "purescript-maybe": "^3.0.0",
+    "purescript-maps": "^3.3.1"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^3.0.0"
+  }
+}
