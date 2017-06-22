@@ -1,11 +1,13 @@
 module Data.Schema where
 
-import Prelude ((<<<))
+import Prelude ((<<<), class Apply, apply)
+import Control.Applicative (class Applicative, pure)
 import Control.Applicative.Free (FreeAp, hoistFreeAp)
 import Data.Exists (Exists, mkExists, runExists)
 import Data.Function (($))
-import Data.Functor (map)
-import Data.Profunctor (class Profunctor)
+import Data.Functor (class Functor, map)
+import Data.Newtype (class Newtype)
+import Data.Profunctor (class Profunctor, rmap)
 import Data.Functor.Contravariant (class Contravariant, cmap)
 import Data.Lazy (Lazy, force)
 import Data.Leibniz (type (~))
@@ -20,7 +22,7 @@ head (HCofree h _) = h
 tail :: forall g a i. HCofree g a i -> g (HCofree g a) i
 tail (HCofree _ t) = force t
 
-newtype Schema (p :: Type -> Type) (a :: Type) (i :: Type) = Schema { runSchema :: HCofree (SchemaAlg p) a i }
+newtype Schema (p :: Type -> Type) (a :: Type) (i :: Type) = Schema (HCofree (SchemaAlg p) a i)
 
 data SchemaAlg (p :: Type -> Type) (g :: Type -> Type) (a :: Type) 
   = Prim (p a)
@@ -31,9 +33,22 @@ data SchemaAlg (p :: Type -> Type) (g :: Type -> Type) (a :: Type)
 
 newtype Props (g :: Type -> Type) (o :: Type) (a :: Type) = Props (FreeAp (PropSchema g o) a)
 
-instance propsPf :: Profunctor (Props g) where
-  dimap f g (Props fap) = 
-    Props <<< map g $ hoistFreeAp (runPropSchemaC <<< cmap f <<< PropSchemaC) fap
+-- instance propsNewtype :: Newtype (Props g o a) (FreeAp (PropSchema g o) a) where
+--   wrap = Props
+--   unwrap (Props fa) = fa
+
+instance propsProfunctor :: Profunctor (Props g) where
+  dimap f g (Props fa) = 
+    Props <<< map g $ hoistFreeAp (runPropSchemaC <<< cmap f <<< PropSchemaC) fa
+
+instance propsFunctor :: Functor (Props g a) where
+  map = rmap 
+
+instance propsApply :: Apply (Props g a) where
+  apply (Props f) (Props fa) = Props $ apply f fa
+
+instance propsApplicative :: Applicative (Props g a) where
+  pure = Props <<< pure
 
 data PropSchema (g :: Type -> Type) (o :: Type) (a :: Type)
   = Required (Req g o a)
