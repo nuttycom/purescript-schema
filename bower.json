@@ -15,7 +15,9 @@
     "purescript-maybe": "^3.0.0",
     "purescript-maps": "^3.3.1",
     "purescript-free": "^4.0.1",
-    "purescript-lazy": "^3.0.0"
+    "purescript-lazy": "^3.0.0",
+    "purescript-contravariant": "^3.0.0",
+    "purescript-profunctor": "^3.2.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
