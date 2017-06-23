@@ -31,9 +31,10 @@ instance hCofreeFNewtype :: Newtype (HCofreeF g i a) (HCofree g a i) where
   wrap = HCofreeF
   unwrap (HCofreeF fa) = fa
 
---instance hCofreeFFunctor :: (HFunctor g) => Functor (HCofreeF g i) where
---  map = loop 
---   loop f (HCofreeF (HCofree h ga)) = wrap $ HCofree (f h) (defer $ \_ -> hmap (unwrap <<< loop f <<< wrap <<< force) ga)
+instance hCofreeFFunctor :: (HFunctor g) => Functor (HCofreeF g i) where 
+  map f (HCofreeF cf) = HCofreeF $ loop f cf where
+    loop :: forall a b i'. (a -> b) -> HCofree g a i' -> HCofree g b i'
+    loop f (HCofree hd tl) = HCofree (f hd) (defer \_ -> hoist (loop f) (force tl))
 
 head :: forall g a i. HCofree g a i -> a
 head (HCofree h _) = h
@@ -44,9 +45,12 @@ tail (HCofree _ t) = force t
 newtype Schema (p :: Type -> Type) (i :: Type) (a :: Type)
   = Schema (HCofree (SchemaAlg p) a i)
 
---instance schemaFunctor :: Functor (Schema p i) where
---  map f (Schema cf) = Schema $ loop f cf where
---    loop f (HCofree hd tl) = HCofree (f hd) (defer \_ -> hoist (loop f) (force tl))
+instance schemaNewtype :: Newtype (Schema p i a) (HCofree (SchemaAlg p) a i) where
+  wrap = Schema
+  unwrap (Schema cf) = cf
+
+instance schemaFunctor :: Functor (Schema p i) where
+  map f (Schema cf) = Schema <<< unwrap $ map f (HCofreeF cf) 
 
 data SchemaAlg (p :: Type -> Type) (g :: Type -> Type) (a :: Type)
   = Prim (p a)
@@ -56,7 +60,7 @@ data SchemaAlg (p :: Type -> Type) (g :: Type -> Type) (a :: Type)
   | Dict (Exists (DictElem g a))
 
 instance schemaAlgHFunctor :: HFunctor (SchemaAlg p) where
-  hoist :: forall g h. (g ~> h) -> SchemaAlg p g ~> SchemaAlg p h
+  hoist :: forall p g h. (g ~> h) -> SchemaAlg p g ~> SchemaAlg p h
   hoist nt (Prim pa) = Prim pa
   hoist nt (Rec (Props fa)) = Rec $ Props (hoistFreeAp (hoistPropSchema nt) fa)
   hoist nt (Sum xs) = Sum $ map (runExists (mkExists <<< hoistConstr nt)) xs
