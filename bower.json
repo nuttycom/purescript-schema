@@ -18,7 +18,8 @@
     "purescript-lazy": "^3.0.0",
     "purescript-contravariant": "^3.0.0",
     "purescript-profunctor": "^3.2.0",
-    "purescript-newtype": "^2.0.0"
+    "purescript-newtype": "^2.0.0",
+    "purescript-hoist": "^4.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
